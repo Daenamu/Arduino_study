@@ -1,0 +1,61 @@
+[배경 지식]
+- 디지털 함수는 모든 핀 사용 가능
+  아날로그 함수: ANALOG IN으로 표시된, A가 붙은 핀은 아날로그 입력 핀
+                PWM이 표시된, 또는 ~이 표시된 핀은 아날로그 출력 핀만 사용 가능
+
+- 아날로그는 연속된 값의 변화이다. 디지털 값으로 변환해주는 것을 ADC라고 하며, A가 붙은 핀이 이 기능을 가짐.
+
+[참조]
+- 아날로그 출력 센서들 : 습도, 가스, 사운드, 조도 등등
+- 센서 구입 사이트 : 아트로봇, iRNU, sparkfun
+
+[함수]
+int analogRead(pin), 핀 번호는 'A0' 처럼 쓰고, 0~1023 사이의 값을 반환함.
+
+[코드]
+
+void setup() {
+    Serial.begin(9600);
+}
+void loop() {
+    int sensorValue = analogRead(A0);
+
+    Serial.println(sensorValue);
+    delay(100);
+}
+
+
+
+[실습]
+
+HIH-4030 습도 센서 이용.
+아날로그 값을 0~100% 사이의 값으로 변환 필요함.
+
+1. 구글링 : 소스코드 복사
+
+2. 데이터시트 참고하여 직접 구하기
+
+-->
+
+int HIH4030_Pin = A1;
+
+void setup() {
+    Serial.begin(9600);
+}
+void loop() {
+    float temperature = 25;                             // 온도 필요. 기본 값 설정
+    float relativeHumidity = getHumdity(temperature);   // 함수를 통해 습도 받아옴
+    Serial.println(relativeHumidity);
+    delay(1000);
+}
+float getHumdity(float degreesCelcius) {
+    float supplyVolt = 5.0;             
+
+    int HIH4030_Value = analogRead(HIH4030_Pin);        // analogRead 함수
+    float voltage = HIH4030_Value / 1023 * supplyVolt;  // voltage 값으로 변경.
+
+    float sensorRH = 161.0 * voltage / supplyVolt - 25.8; // 공식 대입, 데이터시트에서 파생됨.
+    float trueRH = sensorRH / (1.0546 - 0.00216 * degreesCelcius);
+
+    return trueRH;
+}

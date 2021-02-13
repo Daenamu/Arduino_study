@@ -1,0 +1,33 @@
+[배경지식]
+tone() 함수는 지정한 핀으로 50% 듀티비로 PWM 파형을 출력하는 함수.
+analogWrite와 다르게, 주파수를 조절할 수 있다!
+
+[함수]
+tone(pin, frequency)
+tone(pin, frequency, duration) // 핀번호, 주파수(HZ), 출력 시간(밀리초)
+
+noTone(pin) // 출력 중단
+
+* 2개 이상의 핀을 동시에 출력할 수는 없다
+* 메가 외의 보드는 tone()함수를 사용할 경우 3, 11번 핀을 analogWrite 함수에 사용할 수 없다. 타이머 문제
+
+[실습]
+부저로 멜로디 연주하기
+
+#include "pitches.h" // 노트에 따른 주파수 정의, 같은 파일 위치에 있거나 libraries, core 등 특별 지정 폴더에 존재하는 파일 인클루드 가능.
+
+int melody[] = {NOTE_C4, NOTE_G3, NOTE_A3, NOTE_G3, NOTE_B3, NOTE_C4};
+int noteDurations[] = {4, 8, 8, 4, 4, 4, 4, 4}; // 4분음표, 8분음표
+
+void setup() {
+    for (int thisNote = 0; thisNote < 8; thisNote++) {
+        int noteDurations = 1000 / noteDurations[thisNote]; 
+
+        tone(8, melody[thisNote], noteDurations);
+
+        int pauseBetweenNotes = noteDurations * 1.30;
+        delay(pauseBetweenNotes);
+
+        noTone(8);  // tone() 함수에서 설정한 시간보다 delay 시간이 더 길어서 굳이 noTone을 호출할 필요는 없음
+    }
+}

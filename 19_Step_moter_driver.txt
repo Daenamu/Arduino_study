@@ -1,0 +1,51 @@
+[드라이버 설명]
+EasyDriver
+
+입력 핀:
+    - STEP : 스텝 신호, LOW와 HIGH를 한 번 반복하면 하나의 스텝 신호가 출력됨.
+    - DIR : 모터의 회전 방향, HIGH면 시계, LOW면 반시계
+    - MS1, MS2 : 스텝 모드 설정
+    - ENABLE, SLEEP : 연결 안해도 됨. 이름 그대로 역할
+
+출력 핀: A, /A, B, /B  : 모터에 순서대로!! 연결, 순서가 다를수도 있다.
+
+*스텝 모드: 데이터 시트 참고.
+    - LL : Full step(2 phase), 2상 여자 구동 방식
+    - HL : Half step,    1/2 회전각
+    - LH : Quarter step, 1/4 회전각
+    - HH : Eighth step,  1/8 회전각
+
+* ENABLE, SLEEP 핀은 LOW Active 핀으로, 핀의 신호가 LOW일 때 동작함.
+  드라이버 보드 상에서 기본적으로 LOW, HIGH 신호가 설정됨.
+
+  [실습]
+
+  int stepPin = 7;
+  int dirPin = 6;
+  int ms1Pin = 5;
+  int ms2Pin = 4;
+
+  int stepsPerRevolution = 200;
+  int stepDelayMicros = 2500; // 2.5밀리초, 한 스텝(LOW->HIGH)에 5밀리초. 한 바퀴에 1초
+
+  void setup() {
+      pinMode(stepPin, OUTPUT);
+      ... // 핀모드 설정
+  }
+
+  void loop() {
+      digitalWrite(dirPin, HIGH); // 시계방향 설정
+      digitalWrite(ms1Pin, LOW);  // Full-Step 모드
+      digitalWrite(ms2Pin, LOW);
+
+      for (int i = 0; i < stepsPerRevolution; i++) {
+          // HIGH와 LOW 신호를 번갈아가며 출력
+          digitalWrite(stepPin, HIGH);
+          delayMicroseconds(stepDelayMicros); // 데이터시트 참고. 1밀리초 이상 딜레이가 필요함.
+          digitalWrite(stepPin, LOW);
+          delayMicroseconds(stepDelayMicros);
+      }
+
+      // dirPin이 LOW면 반시계 방향
+      // ms1과 ms2 설정으로 모드 세팅.
+  }

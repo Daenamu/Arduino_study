@@ -1,0 +1,46 @@
+[함수]
+int digitalRead(pin) : 핀 번호에서 들어오는 값이 LOW인지 HIGH인지 판단.
+
+
+[DigitalReadSerial 코드]
+
+int pushButton = 2;
+
+void setup() {
+    Serial.begin(9600);             // pc 모니터 세팅, 9600보드 레이트 사용
+    pinMode(pushButton, INPUT);
+}
+
+void loop() {
+    int buttonState = digitalRead(pushButton);
+
+    Serial.println(buttonState);    // pc 모니터 출력
+    delay(1);
+}
+
+
+[실제 센서]
+- 마주보고 있는 두 핀은 연결되있음
+  나란히 있는 두 핀은 떨어져있음
+  스위치가 눌리면 4개의 핀이 모두 연결된다
+
+  한 핀을 VCC(3.3V)에, 다른 핀을 12번에 연결한다.
+
+
+- 스위치를 누르지 않을 때, 플로팅 상태가 되어 0이 계속해서 나오지 않는다.
+  플로팅 상태를 방지하는 것이 풀업 또는 풀다운 저항
+
+- 풀업 저항의 경우, 스위치를 누르지 않았을 때 입력 핀으로 흘러 1이 출력됨.
+  스위치를 눌렀을 때 GND가 연결되어 전기가 모이면서 0이 출력됨.
+  
+  풀다운 저항은 그 반대. VCC와 GND의 위치만 바꾸면 됨.
+
+  *전기는 낮은 곳을 향해 흐른다. 저항이 있으면 어렵다. GND가 가장 낮은 곳이다.
+
+
+[아두이노 내부 풀업 저항 사용]
+
+위 예제에서 
+pinMode(pushButton, INPUT_PULLUP); 으로 바꾸면 된다.
+
+스위치의 한 핀을 입력 핀, 다른 핀을 GND에 연결해야함.

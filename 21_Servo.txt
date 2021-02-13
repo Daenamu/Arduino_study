@@ -1,0 +1,40 @@
+[배경지식]
+아두이노에서 제공하는 서보모터 라이브러리
+
+
+[함수]
+
+Servo.attach(pin)               : 신호 출력할 핀 번호
+Servo.attach(pin, min, max)     : 최소, 최대 펄스폭. 마이크로초 단위, 기본 544, 2400이다
+* 아두이노 보드, 모터 개수에 따라 사용가능 핀이 다를 수 있다.
+
+Servo.write(angle) : degree 단위로 위치 지정
+* 서보 방식으로 제어되는 DC모터의 경우, 0도와 180도일 때 속도가 최대이고, 90도일 때 속도가 0이다.
+
+Servo.waitMicroseconds(us) : 서보 제어 신호 폭을 직접 지정
+
+Servo.detach() : 기능 해제. write함수는 이 함수가 호출되기 전까지 계속 출력됨,.
+
+
+[실습]
+
+#include <Servo.h>
+
+Servo myservo;  // 서보 컨트롤 객체
+
+int pos = 0;
+
+void setup() {
+    myservo.attach(9, 600, 2400);
+}
+
+void loop() {
+    for (pos = 0; pos <= 180; pos++) {
+        myservo.write(pos);
+        delay(15);
+    }
+    for (pos = 180; pos >= 0; pos--) {
+        myservo.write(pos);
+        delay(15);
+    }
+}

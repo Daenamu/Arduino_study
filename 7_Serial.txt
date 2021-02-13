@@ -1,0 +1,104 @@
+시리얼 통신: 직렬 통신으로 다른 기기와 데이터를 주고 받는 것
+
+직렬 통신: 8개의 비트를 하나씩 보내는 것
+병렬 통신: 8개의 비트를 8개 데이터 선으로 동시에 보내는 것
+
+0번, 1번 핀이 시리얼 통신을 위한 핀으로 사용.
+TX : 데이터 전송
+RX : 데이터 수신
+USB to Serial 기능을 하는 칩과 연결되어있어 USB를 통해 PC와 송수신 가능.
+
+시리얼 통신을 사용하기 위해서는 초기화가 필요.
+0번과 1번 핀을 디지털 핀으로 더이상 사용 못하게 됨.
+- Serial.begin(speed)
+  Serial.begin(speed, config)
+
+  speed: 시리얼 통신 속도
+  config: 시리얼 통신 환경. default는 SERIAL_8N1
+
+
+아두이노가 사용하는 시리얼 통신인 UART는 비동기식 통신. 
+Clock 라인을 사용하지 않기 때문에 미리 약속된 속도로 데이터를 전송해야함
+보드 레이트를 일치시켜야 한다!
+
+
+* 시리얼 통신 종류
+    1. UART/USART : 비동기식/동기식 시리얼 통신, 동기식은 clock 라인을 하나 더 사용
+    2. SPI : 
+        MOSI(master out, slave in), 
+        MISO(master in, slave out),
+        SCK(synchronous clock line), 
+        SS(slave select) 4개 선 필요.
+
+        데이터 송수신이 동시에 이루어짐. 속도가 빨라 이더넷 통신에 주로 사용
+        슬레이브 개수가 많으면 효율적이지 않음.
+
+    3. I2C :
+        SDA : Data 송수신
+        SCK : Clock 라인 2개 선 필요.
+        
+        SPI처럼 마스터와 슬레이브로 구성, 슬레이브마다 지정된 주소값을 가지고 데이터를 주고 받음.
+        주소값을 붙여야 해서 긴 데이터 보내기에는 부적합.
+        두 개의 선만으로 여러 기기와 통신할 수 있어 좋음
+
+
+[함수]
+
+- Serial.begin(speed)
+  Serial.begin(speed, config)
+  Serial.end()
+  serialEvent()  : 데이터가 수신되면 자동으로 호출되는 콜백함수, 사용자가 직접 정의
+
+
+- Serial.print(value)   : 데이터 전송, 받는 쪽은 숫자로만 받음
+  Serial.println(value) 
+
+- Serial.write(value)     : byte형 또는 문자열 전송 가능, 문자가 아닌 데이터 전송할 때 이용
+  Serial.write(buffer, length)  : byte형 배열
+
+
+- int Serial.available()  : 수신된 데이터 중 읽지 않은 데이터 byte수 반환. 없으면 0
+  char Serial.read()      : 수신된 데이터 중 1byte 읽어옴
+
+- byte Serial.readBytes(buffer, length) 
+  byte Serial.readBytesUntil(character, buffer, length) : 지정된 문자가 수신될 때까지 데이터를 읽어옴
+
+- long Serial.parseInt()  : 수신된 문자열 데이터를 숫자로 변환
+  float Serial.parseFloat()
+
+- Serial.setTimeout(timeout) : read 관련 함수에 사용되는 타임아웃 시간
+
+
+
+[코드]
+
+void setup() {
+    Serial.begin(9600);
+}
+void loop() {
+    if (Serial.available() > 0) {
+        char c = Serial.read();
+        Serial.print("rx: ");
+        Serial.println(c);
+    }
+}
+
+// 시리얼 모니터 실행 후 No line ending 으로 설정. 데이터 보낼 때 \n 을 안붙임
+// 데이터를 쓴 다음 Send버튼으로 전송하기
+
+
+void setup() {
+    Serial.begin(9600);
+}
+void loop() {
+    if (Serial.available() > 0) {
+        long readValue1 = Serial.parseInt(); // 문자열 읽어와 정수로 변환.
+        long readValue2 = Serial.parseInt();
+
+        Serial.print(readValue1);
+        Serial.print(" ");
+        Serial.println(readValue2);
+    }
+}
+
+// 시리얼 통신 포트가 여러 개인 경우에는 Serial1 과 같이 번호르 붙여야함. serialEvent 함수도 이름 뒤에 채널 번호 붙여주면 됨

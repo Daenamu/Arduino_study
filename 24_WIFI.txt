@@ -1,0 +1,84 @@
+[배경 지식]
+보통 와이파이 모듈은 근처의 AP 에 접속하여 IP를 할당 받음.
+직접 AP모드를 지원하는 경우도 있다.
+
+
+[모듈 설명]
+WiFIy 모듈, SPI 방식
+쉴드에 RN-131C 칩 사용. UART(시리얼) 통신 방식으로 작동
+위 칩과 외부 포트 사이에 SC16IS750 칩 있음. 시리얼 데이터를 SPI 데이터로 변환하는 역할, 시리얼 통신을 하면서 고속 데이터 통신이 가능
+*64바이트 이상의 큰 데이터는 데이터 버퍼 크기를 늘려야함.
+
+핀:
+    - 전원부 : RES, VIN, GND
+    - nIRQ (7번 핀)
+    - SS (메가에서 기본 53핀 정의)
+    - MOSI, MISO
+    - SCK
+
+ICSP 포트를 사용해도 괜찮음
+
+
+[모듈 설정]
+
+$$$ 로 CMD 모드에 접근.
+모든 명령어는 \r로 끝나야함
+exit 으로 CMD 모드 종료
+
+set 커맨드: set <category> <name> <value>
+get 커맨드: get <category> <name> <value>   // ex) get ip
+status 커맨드: show <category>              // 카테고리 전체 설정 보여줌
+
+그 외: action, FILE I/O는 유저 매뉴얼 참고
+
+*구분자는 공백문자, 그 외의 경우로 공백을 써야할 땐 $ 문자로 대체하기.
+
+
+[함수]
+
+WiFIy.begin()  : 모듈 초기화
+
+boolean WiFIy.join(char *ssid)  : AP를 검색하여 접속
+boolean WiFIy.join(char *ssid, char *password)
+
+
+*SpiSerial : SC16IS750와 데이터를 주고받는 프로토콜이 정의된 클래스
+
+SpiSerial.print(value)  : 데이터 전송
+SpiSerial.println(value)
+
+int SpiSerial.available() : 수신된 데이터 길이 반환
+
+
+
+[예제]
+
+#include <SPI.h>
+#include <WiFIy.h>
+
+char ssid[] = "ssid";    // 접속할 AP의 ssid
+char passphrase[] = "passphrase";  // 비밀번호
+
+void setup() {
+    Serial.begin(9600);
+    
+    WiFIy.begin();  // 와이파이 모듈 실행
+
+    if (WiFIy.join(ssid, passphrase)) {  // AP에 접속, 커맨드 모드에 들어감
+        Serial.println("Association Failed.");
+        while(1);   // 접속 실패 상태 유지
+    }
+
+    SpiSerial.println("exit");  // 커맨드 모드 종료 
+    delay(100);
+}
+
+void loop() {   // 모듈과 시리얼이 서로 데이터를 주고 받음.
+    while (SpiSerial.available() > 0) {     
+        Serial.write(SpiSerial.read());
+    }
+
+    if (Serial.available()) {
+        SpiSerial.write(Serial.read());
+    }
+}

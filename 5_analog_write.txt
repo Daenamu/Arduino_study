@@ -1,0 +1,41 @@
+[배경지식]
+~가 붙어있거나, PWM이 표시된 부분이 아날로그 출력 핀
+
+PWM : Pulse Width Modulation, 진동의 폭을 조절  
+
+주파수 n hz : 1초에 n번의 주기를 가진 파형
+Duty rate  : 한 주기 안에 HIGH를 유지하는 시간의 비율 
+    ex) 2초 주기에 1초동안 HIGH 신호가 있으면 50% 듀티비를 가진다.
+
+--> 듀티 비를 조절할 수 있는 일정한 주기를 가진 파형을 PWM이라고 한다!
+
+
+[함수]
+void analogWrite(pin, value) // value: 듀티비를 나타내는 0~255 사이의 값. 주파수는 약 490HZ로 고정
+
+* 몇몇 핀은 980hz로 동작, 몇몇 핀은 설정한 듀티비보다 높을 수 있음. 강좌 12 참고
+
+
+[실습]
+LED 사용.
+-극은 GND에, +극은 330옴 저항 연결 후 9번 핀(PWM)에 연결 : 내부 저항이 없기 때문.
+
+int led = 9;
+int brightness = 0;
+int fadeAmount = 5;
+
+void setup() {
+    pinMode(led, OUTPUT);
+}
+void loop() {
+    analogWrite(led, brightness); // led가 490hz로 깜빡였다 켜짐. value가 높을 수록 켜져있는 시간이 길어서 밝기가 밝아짐!
+    brightness = brightness + fadeAmount;
+
+    if (brightness == 0 || brightness == 255) {
+        fadeAmount = -fadeAmount;
+    }
+    delay(30); // 30ms 마다 점점 밝아지거나 점점 어두워짐
+}
+
+
+* LED +핀으로 보내는 전압을 조절하는 것과 동일한 효과인 것으로 보이기 때문에 analog 출력이라 한다.

@@ -1,0 +1,94 @@
+[배경 지식]
+I2C 통신 구성 요소 :
+    - SDA : 데이터 주고 받는 선
+    - SCL : 클럭 동기화 선
+    - Master : 데이터 송수신을 주도하는 device
+    - Slave : 송수신 대상 device, 최대 127개까지 연결
+
+* 통신을 위해서 SDA와 SCL선 모두 HIGH 상태가 유지되어야함 -> 풀업 저항 필요. 아두이노에서는 내부 풀업 저항 사용.
+* 데이터 송수신 전 반드시 slave의 주소를 명시해야됨. -> 짧은 데이터 송수신 할 때 사용
+
+동작 과정 : 
+    SDA 신호만 LOW로 fall (시작 신호) -> SCL 선으로 클럭 신호 생성 -> 
+    클럭 LOW 일 때 SDA 신호를 비트 신호로 바꿈 -> HIGH일 때 SDA 신호를 읽어옴 ->
+    전송이 끝나면 SCL과 SDA 신호를 HIGH로 바꾸어 정지 신호를 만든다.
+
+* 시작 신호의 첫 7비트는 슬레이브의 주소값, 8번째 비트는 read or write 신호다.
+* 위 비트는 마스터에서만 생성 가능. 데이터를 받으면 슬레이브에서 응답 신호 (ACK)를 만들어 수신 확인.
+* 응답 신호(ACK)는 LOW, 데이터를 다 전송하면 HIGH(NACK) 신호를 전달한다.
+
+
+아두이노에서는 I2C 통신을 위해 Wire 객체 제공, SDA, SCL 핀 제공함. 
+
+
+[함수]
+
+#include <Wire.h>
+
+Wire.begin()            : I2C 통신 초기화, 마스터 모드
+Wire.begin(address)     : 슬레이브 모드, 자신의 주소값 지정
+Wire.beginTransmission(address)     : 마스터에서 슬레이브의 주소 값을 지정. 버퍼에 저장되어 전송 준비를 함.
+
+Wire.write(value)       : 실제로 전송할 데이터를 버퍼에 저장. 슬레이브 모드에서는 데이터 요청이 있을 때 클럭 신호에 맞춰 자동 전송됨.
+Wire.write(String)
+Wire.write(dataArray, length)
+
+byte Wire.endTransmission()         : 버퍼에 저장된 데이터를 전송(마스터모드만 가능), 성공 여부 반환
+byte Wire.endTransmission(stop)     : 정지 신호를 생성할지 안할지를 Boolean 값으로 지정. FALSE면 연속하여 데이터를 전송하게 됨.
+
+* 반환값 참고
+    - 0 : 전송 선공
+    - 1 : 버퍼 길이가 허용 범위를 초과함
+    - 2 : 주소 전송 단계에 NACK 응답 발생, 해당 주소값을 가진 슬레이브 기기 없음
+    - 3 : 데이터 전송 단계에 NACK 응답 발생, 전송 실패
+    - 4 : 그 외의 경우
+
+* 마스터가 둘 이상인 경우, 데이터 전송 이후 다른 마스터가 데이터를 전송하는 것을 막기 위해, 정지 신호를 만들지 않기도 한다.
+
+byte Wire.requestFrom(address, quantity)        : 슬레이브로 데이터 요청(마스터 모드), 수신 데이터 길이 설정 및 길이 반환.
+byte Wire.requestFrom(address, quantity, stop)  : 정지 신호 설정
+
+int Wire.available() : 수신된 데이터의 바이트 수
+byte Wire.read()      : 데이터를 한 바이트 읽어옴.
+
+
+Wire.onReceive(handler) : 슬레이브 모드. 데이터가 수신될 때 호출될 이벤트 처리 함수, int형으로 byte 수가 전달됨.
+Wire.onRequest(handler) : 슬레이브 모드. 데이터가 요청될 때 호출.
+
+* 아두이노는 대부분 마스터에서 동작하긴 함. 아두이노 vs 아두이노면 모를까
+
+
+
+[예제]
+
+- 슬레이브 코드 수신 예제
+
+#include <Wire.h>
+
+byte address = 100;
+byte recvDataBuf[128];
+
+void setup() {
+    Wire.begin(address);
+    Wire.onReceive(receiveHandler);
+}
+
+void loop() {   
+}
+
+void receiveHandler(int nByteNum) {
+    for (int i = 0; i < nByteNum; i++) {
+        recvDataBuf[i] = Wire.read();
+    }
+}
+
+- 슬레이브 코드 송신 예제
+
+void setup() {
+    Wire.begin(address); // byte address = 100
+    Wire.onReceive(requestHandler);
+}
+
+void requestHandler() {
+    Wire.write(data); // byte data = 10;
+}

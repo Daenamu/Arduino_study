@@ -1,0 +1,71 @@
+[배경지식]
+
+DC모터는 입력 핀 두 개로 제어. 두 핀의 전압의 차이로 동작.
+
+PWM 신호로 모터의 속도를 조절(전압을 조절하는 효과). 정확하지 않아 속도 조절이 거의 필요 없을 때 사용.
+
+한 핀은 0V나 5V로 고정, 다른 핀에 PWM 신호를 입력한다
+ * 5V의 경우, 듀티비가 낮을 수록 속도가 더 빠르다.
+
+1번 핀 전압이 높으면 정방향, 2번 핀 전압이 높으면 역방향으로 움직인다.
+
+*** 아두이노 핀으로 출력되는 전압은 5V지만, 모터에서 요구하는 전압이 더 높으면 망가질 수 있으므로,
+    모터드라이브가 필수다!
+
+[모터드라이브 설명]
+모터드라이브 TB6612FNG 사용
+
+VM: 외부 전원, DC모터에서 요구하는 입력 전압과 같은 전원을 연결해야함!!!
+VCC: 아두이노 전원
+AOUT1~BOUT1 : 모터드라이브의 출력 신호 (DC 모터의 입력 신호), 모터 두 개(A, B) 제어 가능
+PWMA / PWMB : PWM신호
+AIN1,2 / BIN1,2 : 방향 제어 신호
+STBY : 모터 상태 신호
+
+IN1과 IN2가 LOW / HIGH고, PWM으로 신호를 출력하면 시계 반대방향 회전
+            HIGH / LOW고, 신호를 출력하면 시계 방향 회전
+그 외는 stop 상태다.
+
+
+[실습]
+
+int STBY = 10; // 핀 번호 설정
+int PWMA = 3;
+int AIN1 = 9;
+int AIN2 = 8;
+
+void setup() {
+    pinMode(STBY, OUTPUT);
+    pinMode(PWMA, OUTPUT);
+    pinMode(AIN1, OUTPUT);
+    pinMode(AIN2, OUTPUT);
+}
+
+void loop() {
+    for (int i = 0; i < 255; i++) {
+        move(i, 0);
+        delay(20);
+    }
+    ...
+    stop();
+    delay(1000);
+}
+
+void move(int speed, int direction) {
+    digitalWrite(STBY, HIGH);   // 모터 활성화
+
+    if (direction == 1) {   // 시계방향 회전
+        digitalWrite(AIN1, HIGH);
+        digitalWrite(AIN2, LOW);
+    }
+    else {     // 시계 반대 방향 회전
+        digitalWrite(AIN1, LOW);
+        digitalWrite(AIN2, HIGH);
+    }
+
+    analogWrite(PWMA, speed); // PWM 신호
+}
+
+void stop() {
+    digitalWrite(STBY, LOW); // 모터 비활성화
+}

@@ -1,0 +1,28 @@
+[함수]
+long map(value, fromLow, fromHigh, toLow, toHigh)
+
+value를 from 범위에서 to 범위로 바꾸는 함수.
+
+
+
+[실습]
+조도 센서와 led 이용.
+주위가 밝으면 led 밝기가 줄고, 어두워지면 led가 밝아진다.
+
+
+const int analogInPin = A0;
+const int analogOutPin = 9;
+
+int sensorValue = 0;
+int outputValue = 0;
+
+void setup() {
+    Serial.begin(9600);
+}
+void loop() {
+    sensorValue = analogRead(analogInPin);  // 조도 읽기
+    outputValue = map(sensorValue, 0, 1023, 255, 0); // 아날로그 값을 듀티비로 바꿈. toLow와 toHigh를 바꾸면 반대 위치의 값이 나옴. 
+    analogWrite(analogOutPin, outputValue); // led 출력
+
+    delay(100);
+}

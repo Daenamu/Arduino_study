@@ -1,0 +1,104 @@
+[배경 지식]
+아두이노와 블루투스 모듈은 시리얼 통신
+블루투스 모듈과 통신 상대는 블루투스 통신을 한다.
+
+[센서 설명]
+RN-42 블루투스 모듈 사용.
+
+핀 : 블루투스의 RX는 아두이노의 TX핀,
+     TX는 아두이노의 RX핀에 연결한다.
+
+     RTS, CTS핀은 하드웨어 흐름 제어에 사용되는데 거의 사용 X
+
+LED: Start LED는 커맨드 모드에선 빠르게, 데이터 모드에서는 느리게 깜빡인다.
+     Connect LED는 다른 기기와 연결이 될 경우 On 된다.
+
+
+[블루투스 모듈 설정]
+
+데이터 모드: 데이터를 주고 받는 모드
+커맨드 모드: 명령어를 주고 받는 모드, 모듈 설정에 쓰임.
+
+처음 전원이 연결될 땐 데이터 모드
+RN-42 모듈로 "$$$" 를 보내면 커맨드 모드,
+          "---<cr>"을 보내면 데이터 모드로 진입한다. // <cr> 은 \r 과 같다
+
+밑의 예제를 실행한 후, No line ending 설정으로 $$$ 를 전송하면 됨. CMD라는 응답이 오면 성공
+그 후에 Both NL or CR 설정으로 커맨드를 입력. 모든 커맨드에는 <cr>이 붙어야함.
+
+(커맨드) 명령어 종류:
+    - D / d : 모듈의 기본 설정
+        - BTA    : 모듈의 MAC 주소, 변경 불가
+        - BTName : 다른 기기에서 검색했을 때 표시될 이름
+        - Baudrt : 보드 레이트
+        - Mode   : 마스터 or 슬레이브 모드
+        - PinCod : 다른 기기에서 연결할 경우 페어링에 사용될 핀 코드 (비밀 번호)
+
+    - sn,<name> : BTName 을 변경. <name>에 원하는 문자열 입력. ACK 응답이 오면 성공
+
+    - I,<time>,<cod> : 주변 기기를 검색, MAC주소와 이름 반환
+                       <time>은 기본 10초, 최대 48초. 코드 기본 값은 0으로 모든 기기 표시. 두 옵션 안넣어도 됨
+
+    - C,<address>    : 해당 MAC 주소의 기기와 연결, address값이 없으면 미리 저장된 주소로 연결, 연결 성공 응답은 없음
+
+    - SR,<address>   : 계속 사용할 주소를 저장
+
+    - --- : 데이터 모드 전환, END 응답이 오면 성공
+
+
+[기기 연결]
+통신 대상이 블루투스와 연결: 어플리케이션을 실행하여 RN-42모듈의 기기 이름을 찾아 핀코드를 입력하면 끝.
+
+아두이노에서 다른 기기로 접속 :
+    1. 커맨드 모드 진입 
+    2. 주변 기기 검색   : I 커맨드
+    3. 연결             : C 커맨드
+    4. 데이터 송수신
+
+* 직접 커맨드를 보내는 경우는 거의 없고, 소스 상에서 명령어를 출력하고, 수신된 데이터를 파싱하여 사용한다.
+
+
+[예제]
+블루투스 통신 대상과 pc 모니터가 서로 입력된 내용을 출력하는 것.
+참고로 프로토콜이 없으면 데이터가 몇 개씩 잘려서 수신될 수 있다
+
+void setup() {
+    Serial.begin(115200);   // pc 모니터
+    Serial1.begin(115200);  // 블루투스 모듈
+}
+
+void loop() {
+    if (Serial1.available()) {
+        int inByte = Serial1.read();
+        Serial.write(inByte);
+    }
+
+    if (Serial.available()) {
+        int inByte = Serial.read();
+        Serial1.write(inByte);
+    }
+}
+
+
+***시리얼 포트가 하나인 경우
+
+SoftwareSerial 라이브러리 사용
+Serial 과 동일한 기능, 함수 가짐. 단, parseInt()와 같은 확장 기능은 제공 x
+
+[함수]
+SoftwareSerial(rxPin,txPin) : 생성자
+SoftwareSerial.begin(baud)  : 통신 속도 설정
+
+[예제]
+#include <SoftwareSerial.h>
+
+SoftwareSerial mySerial(2, 3); // 각각 아두이노의 RX, TX핀 번호
+
+void setup() {
+    Serial.begin(115200);
+    mySerial.begin(115200);
+}
+
+void loop() {
+    // 위 예제와 동일
+}

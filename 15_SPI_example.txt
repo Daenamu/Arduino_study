@@ -1,0 +1,67 @@
+[센서 설명]
+MPL115A1 기압 센서
+
+SDN, CSN, SDO, SDI, SCK, GND, VDD 로 구성
+
+CSN이 SS핀
+SDO는 MISO
+SDI는 MOSI
+SCK는 SCK
+SDN은 셧다운 핀으로, GND에 연결하면 칩을 동작하지 않도록 함.
+VCC는 3.3V에 연결
+GND는 GND에 연결
+
+
+[실습]
+
+#include <SPI.h>
+
+#define PRESS_SS 7 // SS핀 설정
+
+void setup() {
+    Serial.begin(9600);
+
+    SPI.begin();
+    SPI.setBitOrder(MSBFIRST);
+    SPI.setClockDivider(SPI_CLOCK_DIV4);
+    SPI.setDataMode(SPI_MODE0);
+
+    pinMode(PRESS_SS, OUTPUT);
+    digitalWrite(PRESS_SS, HIGH);
+}
+
+void loop() {
+    float pressure = getPressure();
+    float altitude = getAltitude(pressure);
+
+    // print pressure and altitude
+}
+
+... (자세한 코드는 예제 소스 참고)
+
+void writeData(byte addr, char data) {
+    addr &= 0x7F;
+
+    digitalWrite(PRESS_SS, LOW); 
+    delay(1);
+    SPI.transfer(addr);
+    SPI.transfer(data);
+    delay(1);
+    digitalWrite(PRESS_SS, HIGH);
+}
+
+char readData(byte addr) {
+    char data;
+    addr |= 0x80;
+
+    digitalWrite(PRESS_SS, LOW);
+    delay(1);
+    SPI.transfer(addr);
+    data = SPI.transfer((byte)0);
+    delay(1);
+    digitalWrite(PRESS_SS, HIGH);
+
+    return data;
+}
+
+*그냥 주어진 라이브러리 잘 쓰자 ㅎ

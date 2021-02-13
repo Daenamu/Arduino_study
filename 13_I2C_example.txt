@@ -1,0 +1,44 @@
+[센서 설명]
+VCC, GND, SDA, SCL, ALT, ADD0 핀으로 구성
+
+ALT 핀은 안쓰임.
+ADD0 핀은 슬레이브 주소값 변경을 위해 사용.
+    - GND, VCC, SDA, SCL 에 연결함으로써 주소 값이 변경이 된다. 데이터 시트 참고
+
+[실습]
+온도 센서 TMP102 사용
+레지스터 주소 0은 온도 읽기, 주소 1은 설정 레지스터 등등이 있다.
+해당 센서는 값을 12비트로 전달한다.
+
+
+#include <Wire.h>
+
+#define TMP102_ADDR 72      // 주소값
+#define TMP102_REG_TEMP 0   // 레지스터(포인터) 주소값. 송수신할 데이터의 종류를 설정한다. 데이터 시트 참고
+
+void setup() {
+    Wire.begin();       // 마스터모드 초기화
+    Serial.begin(9600);
+}
+
+void loop() {
+    float temp = GetTemperature(); // 사용자 정의 함수
+    Serial.print("temp: ");
+    Serial.println(temp);
+    delay(2000);
+}
+
+float GetTemperature() {
+    Wire.beginTransmission(TMP102_ADDR); // 주소 설정
+    Wire.write(TMP102_REG_TEMP);         // 쓰기 비트 (8번째 비트)
+    Wire.endTransmission();              // 데이터 전송
+
+    Wire.requestFrom(TMP102_ADDR, 2);    // 2byte 데이터 요청 및 수신. (12비트 전달하므로)
+    byte firstByte = Wire.read();        // 버퍼에서 1byte 읽어오기
+    byte secondByte = Wire.read();
+
+    int sumByte = ((int)firstByte << 4) | (secondByte >> 4);     // 변환 식
+
+    float tempValue = sumByte * 0.0625;
+    return tempValue;
+}

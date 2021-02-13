@@ -1,0 +1,64 @@
+[배경지식]
+데이터를 주고 받기 위한 순서나 형태를 미리 약속하는 것.
+데이터가 연속해서 들어오지 않는 현상을 방지하고, 길이를 유동적으로 만들기 위해 시작문자와 끝문자를 지정
+
+[예제]
+데이터 형식: "#<command>,<data>@"
+led와 모터를 제어하는 예제
+
+
+int ledPin = 13;
+int dcPin1 = 7;
+int dcPin2 = 8;
+
+String rxData = "";
+boolean bStart = false;
+int dataCnt = 0;
+
+void setup() {
+    pinMode(ledPin, OUTPUT);
+    pinMode(dcPin1, OUTPUT);
+    pinMode(dcPin2, OUTPUT);
+    digitalWrite(dcPin2, LOW);  // 한 방향으로만 사용할 예정
+
+    Serial1.begin(115200);
+}
+
+void loop() {
+    if (Serial1.available()) {
+        char data = Serial1.read();
+
+        if (bstart) {  
+            if (data == '@') {  // 종료 문자가 들어오면
+                parseData(rxData);  // 받은 문자열 처리
+                bstart = false;
+                rxData = "";
+            }
+            else {
+                rxData += data;  // 문자열 저장
+            }
+        }
+        else {
+            if (data == '#') {  // 시작 문자가 들어오면
+                bstart = true;
+            }
+        }
+    }
+}
+
+void parseData(String rxStr) {
+    String cmd = rxStr.substring(0, rxStr.indexOf(','));    // , 를 구분으로 나눔
+    String data = rxStr.substring(rxStr.indexOf(',')+1);
+
+    if (cmd == "LED") {
+        if (data == "ON") {
+            digitalWrite(ledPin, HIGH);
+        }
+        else if (data == "OFF") {
+            digitalWrite(ledPin, LOW);
+        }
+    }
+    else if (cmd == "MOTOR") {
+        analogWrite(dcPin1, data.toInt());  // 이 dc모터는 전압 차이로 작동.
+    }
+}

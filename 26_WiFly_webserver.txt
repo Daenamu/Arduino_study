@@ -1,0 +1,47 @@
+[함수]
+
+const char* WiFIy.ip() : 모듈에 할당된 ip 주소값 반환, 클라이언트가 서버에 접속하기 위해 꼭 필요함!
+
+WiFIyServer(int port)  : 포트 넘버를 가진 서버 생성자
+
+WiFIyServer.begin()    : 서버 초기화
+
+WiFIyClient WiFIyServer.available() : 서버로 연결을 요청한 클라이언트가 있을 때, 해당 client 객체 반환
+
+
+
+[실습]
+
+#include <SPI.h>
+#include <WiFIy.h>
+#include "Credentials.h"
+
+WiFIyServer server(80); 
+
+void setup() {
+    WiFIy.begin();
+
+    if (!WiFIy.join(ssid, passphrase)) {
+        while(1);
+    }
+
+    Serial.begin(9600);
+    Serial.println(WiFIy.ip());
+    
+    server.begin();
+}
+
+void loop() {
+    WiFIyClient client = server.available();
+
+    if (client) {
+        while (client.connected()) {
+            if (client.available()) {
+                char c = client.read();
+                // 입력 처리, \r\n 이 연달아 나올경우, 데이터 수신이 끝남.
+            }
+        }
+    }
+    delay(100);
+    client.stop();
+}

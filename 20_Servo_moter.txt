@@ -1,0 +1,51 @@
+[배경 지식]
+
+서보 모터: 제어 명령에 따라 정확한 위치와 속도를 맞출 수 있는 모터
+모터를 위치시키는 점에서 스텝 모터와 다르다.
+
+전원, GND, 입력 신호 3개의 선으로 이루어짐.
+
+PWM신호를 받고, 주파수가 정해져있으며 신호 유지 시간으로 회전 각도가 결정됨.
+ex) 50hz의 주파수 가진 신호에서, 한 주기 안의 HIGH 신호 시간에 따라 회전 각도가 결정된다
+위치를 유지하기 위해서는 신호를 계속 보내야함.
+
+*최대 180도까지만 돌 수 있음
+
+DC나 스텝 모터처럼 큰 전압은 요구 안하지만, 큰 전류를 요구해서 외부 전압 필요.
+전류를 계속 소모해서 건전지 소모 시간이 빠름.
+
+
+[예제]
+
+int servoPin = 6;
+int freq = 20000;    // 20 밀리초 : 50hz
+int minPulse = 600;  // 최소 유지 시간 0.6밀리초 (0도)
+int maxPulse = 2400; // 최대 유지 시간 2.4밀리초 (180도)
+
+void setup() {
+    pinMode(servoPin, OUTPUT);
+    digitalWrite(servoPin, LOW);
+}
+
+void loop() {
+    for (int i = 0; i <= 180; i++) {
+        setServo(i); // 사용자 정의 함수
+    }
+}
+
+void setServo(int degree) {
+    int hTime = 0;  // PWM의 high 신호 출력 시간
+    int lTime = 0;  // low 신호 출력 시간
+
+    if (degree < 0) degree = 0;
+    if (degree > 180) degree = 180;
+
+    hTime = (int)(minPulse + (maxPulse-minPulse)/180 * degree); // 최소 유지시간(0도) + 추가 각도
+    lTime = freq - hTime;   // 1주기 시간 - hTime
+
+    digitalWrite(servoPin, HIGH);
+    delayMicroseconds(hTime); 
+
+    digitalWrite(servoPin, LOW);
+    delayMicroseconds(lTime);
+}

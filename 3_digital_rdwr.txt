@@ -1,0 +1,46 @@
+[사양]
+- 초음파 센서 NT-TS601 사용
+- 연결핀 세 개는 각각 VCC, GND, SIG 핀
+
+[동작 방법]
+1. SIG핀의 기본 출력은 LOW(아두이노->센서)
+2. 최소 5 us (마이크로) 동안 HIGH 신호(Input trigger pulse) 출력   // min typ max 값을 통해 시간 범위를 알 수 있음
+3. 초음파 센서에서 초음파 발사
+4. SIG핀으로 HIGH 출력(센서->아두이노)
+5. 초음파가 반사되어 수신부에 입력되면 SIG핀으로 LOW 출력(센서->아두이노)
+6. 다음 측정까지 최소 200us 필요.
+
+--> HIGH를 유지했던 시간을 통해 아두이노에서 거리 계산을 한다.
+
+[코드]
+
+int ultra = 11; // SIG핀에 연결
+
+void setup() {
+    Serial.begin(9600);
+}
+
+void loop() {
+    pinMode(ultra, OUTPUT);     // 단계 1에 해당
+    digitalWrite(ultra, LOW);   
+    delay(1);                   // 최소 200us이므로 1ms 지연 할당.
+
+    digitalWrite(ultra, HIGH);  // 단계 2에 해당
+    delayMicroseconds(10);      // us 단위 지연 함수
+ 
+    pinMode(ultra, INPUT);      
+
+    unsigned long duration = pulseIn(ultra, HIGH); // HIGH가 출력된 시간을 구하는 함수
+
+    double dist = (331.5 * (0.60714 * 25.0)) * (((double)duration / 1000000) / 2);  // 공식 사용. 단위가 s이므로 duration을 s로 변환함.
+
+    Serial.print("Distance: "); // \n 없이 출력
+    Serial.print(dist * 100);   // meter 단위를 cm 단위로 변환
+    Serial.println("cm");
+}
+
+[부가 설명]
+delayMicroseconds(int s); // us만큼 지연
+
+unsigned long pulseIn(pin, value) // value로 지정된 신호가 유지되는 시간을 us단위로 반환
+unsigned long pulseIn(pin, value, timeout) // 타임아웃 시간이 지나면 0 반환

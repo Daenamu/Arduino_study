@@ -1,0 +1,113 @@
+[배경지식]
+SPI : 1:N을 지원하는 동기식 통신 방식
+
+구성 요소:
+    - MOSI : 마스터에서 데이터를 출력하기 위한 선
+    - MISO : 슬레이브에서 데이터를 출력하기 위한 선
+    - SCK : 클럭
+    - SS : 데이터 송수신할 슬레이브를 선택하는 선
+
+* 송수신 선이 따로 있어 I2C보다 빠르다.
+  이더넷 등 빠른 데이터 전송이 필요한 곳에 쓰임
+
+* 하나의 마스터에 여러 개의 슬레이브 연결 가능. 그만큼 SS 선이 늘어나게 된다.
+
+* 데이터를 클럭 신호 HIGH로 바뀔 때 읽을지, LOW로 바뀔 때 읽을지 지정 가능.
+
+
+아두이노에서는 ICSP 포트로 제공
+
+|1 2|     1 : MISO
+|3 4|     2 : Vcc
+|5 6|     3 : SCK
+          4 : MOSI
+          5 : Reset
+          6 : Gnd
+
+SS핀은 아무 핀이나 사용할 수 있음. 
+다만 라이브러리가 디폴트 핀을 사용하면 소스 상에서 수정을 해야함.
+
+
+[함수]
+*단계가 복잡해서 대부분 모듈 제조사에서 라이브러리를 제공함
+
+#include <SPI.h>
+
+SPI.begin()
+SPI.begin(ss)   : Due에서만 가능, SS핀 번호 지정
+SPI.end() : 사용하던 핀을 일반 디지털 핀으로 전환
+
+SPI.setBitOrder(order) : 데이터 전송 시 최상위 비트부터 전송할지, 최하위 비트부터 전송할지 정함
+  *order = LSBFIRST  // 최하위 비트부터
+           MSBFIRST  // 최상위 비트부터
+
+SPI.setClockDivider(divider) : 몇 클럭에 한 비트를 보낼 것인지 정함.
+  *divider = SPI_CLOCK_DIV2 // 2클럭에 1비트, 메인 클럭과 곱하면 전송 속도를 알 수 있음.
+             SPI_CLOCK_DIV4
+             SPI_CLOCK_DIV8
+             SPI_CLOCK_DIV16
+             SPI_CLOCK_DIV32
+             SPI_CLOCK_DIV64
+             SPI_CLOCK_DIV128
+
+SPI.setDataMode(mode) : 데이터 전송 시 사용할 모드 선택.
+  *mode = SPI_MODE0 // Rising 읽기, Falling 쓰기,  LOW->HIGH부터 시작
+          SPI_MODE1 // Rising 쓰기, Falling 읽기
+          SPI_MODE2 // Falling 읽기, Rising 쓰기,  HIGH->LOW부터 시작
+          SPI_MODE3 // Falling 쓰기, Rising 읽기
+
+
+SPI.beginTransaction(SPISettings) : 슬레이브 간 설정을 달리 할 때 사용
+
+SPISettings(speed, order, mode) : SPISettings 생성자
+  *speed : 통신 속도 값  ex) 1000000 : 1MHz
+   order : LSBFIRST or MSBFIRST
+   mode  : SPI_MODE0~3
+
+SPI.endTransaction() : 다른 슬레이브 기기를 설정하기 위해 이전의 설정을 종료
+
+
+byte SPI.transfer(data) : 송수신 동시에 일어남. byte형 데이터 전송 후 바로 수신함.
+* 전송하기 전 데이터를 전송할 SS핀을 LOW로 출력, 전송이 완료되면 HIGH로 변경할 것.
+
+
+*라이브러리의 SPI SS핀을 변경하는 방법
+
+1. 라이브러리 자체에서 핀 번호 초기화 함수 제공
+2. #define 구문에 정의
+3. 직접 소스 코드에서 수정
+
+
+[예제]
+
+두 개의 슬레이브를 각각 다른 설정으로 통신하는 소스
+
+#include <SPI.h>
+
+int ssA = 20; // 슬레이브 A의 SS핀
+int ssB = 21;
+
+SPISettings settingA(2000000, MSBFIRST, SPI_MODE1); 
+SPISettings settingB(16000000, LSBFIRST, SPI_MODE3);
+
+byte val1, val2, val3;
+
+void setup() {
+    pinMode(ssA, OUTPUT);
+    pinMode(ssB, OUTPUT);
+
+    SPI.begin();
+}
+
+void loop() {
+    SPI.beginTransaction(settingA); // 슬레이브 A와 통신 시작
+
+    digitalWrite(ssA, LOW);  // 슬레이브 A 선택 신호
+    val1 = SPI.transfer(0);  // 데이터 송수신
+    val2 = SPI.transfer(100);
+    digitalWrite(ssA, HIGH); // 슬레이브 A 해제 신호
+
+    SPI.endTransaction(); // 슬레이브 A와 통신 해제
+
+    ...(슬레이브 B도 같은 방식)
+}

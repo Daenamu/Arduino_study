@@ -1,0 +1,77 @@
+[string 생성자]
+
+void loop() {
+    String stringOne = "Hello String"; // 기본 할당
+
+
+    stringOne = String('a'); // 문자
+
+    stringOne = String("This is a string"); // 문자열
+
+    stringOne = String(stringOne + " with more"); // +연산
+
+
+    stringOne = String(13); // 10진수 정수 출력
+
+    stringOne = String(analogRead(A0), DEC); // 읽은 값을 10진수로 출력
+
+    stringOne = String(45, HEX); // 16진수로 출력
+
+    stringOne = String(255, BIN); // 2진수로 출력
+
+    stringOne = String(millis(), DEC);  // 밀리초를 출력
+}
+
+
+[string +연산자]
+
+void loop() {
+    stringThree = stringOne + "Add String"; // 문자열 
+
+    stringThree = stringOne + stringTwo; // string 클래스
+
+    stringThree = stringOne + 123; // 숫자
+
+    stringThree = stringOne + millis(); // 
+
+
+    stringThree += "append"; // += 연산자
+
+    stringThree += 123;
+}
+
+
+[함수]
+
+String.charAt(index) // index 위치에 있는 문자 반환
+String[index]
+String.length() // 문자열 길이
+
+String.compareTo(string1) // 같으면 0, 다르면 아스키코드로 비교한 정수값 반환
+String.equals(string1) // 같으면 1, 다르면 0 반환
+String.equalsIgnoreCast(string1) // 같으면 1, 다르면 0, 대소문자 구분 x
+
+String.concat(string1) // +연산 기능
+
+String.startsWith(string1) // string1으로 시작하는지 검사, 1 과 0 반환
+String.endsWith(string1) // string1으로 끝나는지 검사, 1 과 0 반환
+
+String.indexOf(string1, from) // string1의 첫 위치를 반환. from 생략가능. 없으면 -1
+String.lastIndexOf(string1, from) // string1의 첫 위치를 뒤에서부터 찾음. from 생략가능.
+
+String.toCharArray(buf, length, index) // 문자배열로 길이만큼 복사, index 생략 가능
+String.getBytes(buf, length, index) // 위 함수와 동일. 대신 unsigned char 형으로 받음.
+String.substring(start, end) // start부터 end 이전까지 복사. end 생략 가능
+
+String.setCharAt(index, char) // index 위치의 문자 변경
+String.replace(char1, char2) // char1문자를 찾아 변경
+String.replace(string1, string2)
+String.remove(index, count) // index부터 제거. count가 없으면 끝까지 제거
+
+String.toInt() // 정수로 변경
+String.toFloat() // 실수로 변경
+String.toLowerCase() // 소문자로 변환
+String.toUpperCase() // 대문자로 변환
+
+String.trim() // 공백 문자 제거
+String.reserve(size) // 미리 저장공간 확보.

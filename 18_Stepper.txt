@@ -1,0 +1,39 @@
+[배경지식]
+stepper 라이브러리는 아두이노에서 제공하는 스텝 모터 라이브러리
+
+[함수]
+#include <Stepper.h>
+
+Stepper(stepNum, a, b, na, nb);  // 360도 회전하는데 필요한 스텝 수, 4선식 단자 핀
+Stepper(stepNum, a, b); // 2선식 단자 핀
+
+Stepper.setSpeed(rpm); // 스텝 모터 속도
+
+Stepper.step(stepCnt); // 출력할 스텝 수, 음수면 반대 방향
+
+
+[실습]
+
+#include <Stepper.h>
+
+const int stepsPerRevolution = 200; // 360도 회전하는데 필요한 스텝 수
+
+Stepper myStepper(stepsPerRevolution, 8, 9, 10, 11);
+
+void setup() {
+    myStepper.setSpeed(60); // 60 rpm으로 설정
+
+    // 6선식 모터의 공통단자 세팅
+    pinMode(6, OUTPUT);
+    pinMode(7, OUTPUT);
+    digitalWrite(6, HIGH);
+    digitalWrite(7, HIGH);
+}
+
+void loop() {
+    myStepper.step(stepsPerRevolution); // 360도 회전
+    delay(1500);
+
+    myStepper.step(-stepsPerRevolution); // 반대로 회전
+    delay(1500);
+}

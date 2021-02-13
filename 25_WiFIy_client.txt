@@ -1,0 +1,68 @@
+[함수]
+
+WiFIy.begin()  : 모듈 초기화
+
+boolean WiFIy.join(char *ssid)  : AP를 검색하여 접속
+boolean WiFIy.join(char *ssid, char *password)
+
+WiFIy.print(value)  : 모듈과 시리얼 통신으로 데이터 전송
+WiFIy.println(value)
+
+
+WiFIyClient(byte *ip, int port) : 클라이언트 객체 생성
+WiFIyClient(char* domain, int port)
+
+boolean WiFIyClient.connect()   : 지정된 주소로 접속을 요청
+boolean WiFIyClient.connected() : 접속 상태 반환
+
+int WiFIyClient.available() : 수신된 데이터 길이 반환
+
+int WiFIyClient.read() : 한 바이트 읽어옴
+
+WiFIyClient.stop() : 서버 접속 종료
+
+
+
+[실습]
+
+#include <SPI.h>
+#include <WiFIy.h>
+#include "Credentials.h"        // ap 주소 및 비밀번호
+
+WiFIyClient client("google.com", 80);
+
+void setup() {
+    Serial.begin(9600);
+
+    WiFIy.begin();
+
+    if (!WiFIy.join(ssid, passphrase)) {
+        Serial.println("Association failed");
+        while(1);
+    }
+    Serial.println("connecting...");
+
+    if (client.connect()) {
+        Serial.println("connected");
+
+        client.println("GET /search?q=arduino HTTP/1.0");  // google.com 에 arduino로 검색, HTML 구문
+        client.println();
+    }
+    else {
+        Serial.println("connection failed");
+    }
+}
+
+void loop() {
+    if (client.available()) {       // 서버로부터 정보 받아옴
+        char c = client.read();
+        Serial.print(c);
+    }
+
+    if (!client.connected()) {
+        Serial.println();
+        Serial.println("disconnecting.");
+        client.stop();
+        while(1); // stop 상태 유지
+    }
+}
